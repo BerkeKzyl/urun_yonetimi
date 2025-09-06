@@ -82,7 +82,6 @@ class LoginUser(graphene.Mutation):
                     user=None
                 )
 
-            # Şifre kontrolü manuel olarak
             if not user.check_password(input.password):
                 return LoginUser(
                     success=False,

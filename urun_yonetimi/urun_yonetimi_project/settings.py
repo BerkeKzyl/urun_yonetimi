@@ -159,5 +159,4 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-# GraphQL için CSRF korumasını devre dışı bırak
 CORS_ALLOW_CREDENTIALS = True

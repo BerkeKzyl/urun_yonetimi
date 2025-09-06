@@ -1,6 +1,8 @@
 import React from 'react';
 import { useQuery } from '@apollo/client/react';
 import { gql } from '@apollo/client';
+import { useMutation } from '@apollo/client/react';
+import { useAuth } from '../context/AuthContext';
 
 const GET_PRODUCTS = gql`
   query GetProducts {
@@ -12,6 +14,34 @@ const GET_PRODUCTS = gql`
       stock
       imageUrl
       createdAt
+    }
+  }
+`;
+
+const ADD_FAVORITE = gql`
+  mutation AddFavorite($productId: ID!) {
+    addFavorite(productId: $productId) {
+      success
+      message
+    }
+  }
+`;
+
+const REMOVE_FAVORITE = gql`
+  mutation RemoveFavorite($productId: ID!) {
+    removeFavorite(productId: $productId) {
+      success
+      message
+    }
+  }
+`;
+
+const GET_FAVORITE_PRODUCTS = gql`
+  query GetFavoriteProducts {
+    favoriteProducts {
+      id
+      name
+      price
     }
   }
 `;
@@ -32,12 +62,40 @@ interface ProductsData {
 
 function ProductList() {
   const { data, loading, error } = useQuery<ProductsData>(GET_PRODUCTS);
+  const { user } = useAuth();
+  const [addFavorite] = useMutation(ADD_FAVORITE);
+  const [removeFavorite] = useMutation(REMOVE_FAVORITE);
+
+  const { data: favoritesData } = useQuery(GET_FAVORITE_PRODUCTS, {
+    skip: !user
+  });
+
+  const handleFavoriteClick = async (productId: string, isAdd: boolean) => {
+    try {
+      const mutation = isAdd ? addFavorite : removeFavorite;
+      const result = await mutation({ 
+        variables: { productId },
+        refetchQueries: [{ query: GET_FAVORITE_PRODUCTS }]
+      });
+      
+      const response = result.data?.[isAdd ? 'addFavorite' : 'removeFavorite'];
+      alert(response?.message || 'İşlem tamamlandı');
+    } catch (error) {
+      alert('Hata oluştu');
+    }
+  };
+
+  const isFavorite = (productId: string) => {
+    return favoritesData?.favoriteProducts?.some(
+      (fav: any) => fav.id === productId
+    ) || false;
+  };
 
   if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '40px' }}>
         <p style={{ fontSize: '1.2rem', color: '#666' }}>
-          🔄 Ürünler yükleniyor...
+           Ürünler yükleniyor...
         </p>
       </div>
     );
@@ -68,7 +126,7 @@ function ProductList() {
         marginBottom: '30px',
         textAlign: 'center' 
       }}>
-        📦 Ürün Kataloğu
+         Ürün Kataloğu
       </h2>
 
       {data?.products.length === 0 ? (
@@ -78,7 +136,7 @@ function ProductList() {
           backgroundColor: '#f9f9f9',
           borderRadius: '12px'
         }}>
-          <h3 style={{ color: '#666' }}>📭 Henüz Ürün Yok</h3>
+          <h3 style={{ color: '#666' }}> Henüz Ürün Yok</h3>
           <p style={{ color: '#888' }}>
             Admin panelinden ürün ekleyebilirsiniz.
           </p>
@@ -148,6 +206,27 @@ function ProductList() {
                   {product.stock > 0 ? `${product.stock} adet` : 'Stokta Yok'}
                 </span>
               </div>
+
+              {user && (
+                <button
+                  onClick={() => handleFavoriteClick(product.id, !isFavorite(product.id))}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    marginTop: '15px',
+                    backgroundColor: isFavorite(product.id) ? '#dc3545' : '#28a745',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    fontWeight: 'bold',
+                    transition: 'background-color 0.2s'
+                  }}
+                >
+                  {isFavorite(product.id) ? '❤️ Favoriden Çıkar' : '🤍 Favoriye Ekle'}
+                </button>
+              )}
 
               <div style={{ 
                 fontSize: '0.8rem', 
