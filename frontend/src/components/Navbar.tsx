@@ -83,23 +83,21 @@ function Navbar() {
   </Link>
 )}
 
-            {user?.isStaff && (
-              <button style={{
-                background: 'none',
-                border: 'none',
-                color: '#666',
-                fontSize: '1rem',
-                cursor: 'pointer',
-                padding: '8px 12px',
-                borderRadius: '6px',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-              >
-                 Admin Panel
-              </button>
-            )}
+{user?.isStaff && (
+  <Link to="/admin" style={{
+    textDecoration: 'none',
+    color: '#666',
+    fontSize: '1rem',
+    padding: '8px 12px',
+    borderRadius: '6px',
+    transition: 'background-color 0.2s'
+  }}
+  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f9fa'}
+  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+  >
+     Admin Panel
+  </Link>
+)}
           </div>
         </div>
 

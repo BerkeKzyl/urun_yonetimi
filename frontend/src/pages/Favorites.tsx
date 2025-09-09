@@ -27,12 +27,33 @@ const REMOVE_FAVORITE = gql`
   }
 `;
 
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+  stock: number;
+  imageUrl?: string;
+  createdAt: string;
+}
+
+interface FavoriteProductsData {
+  favoriteProducts: Product[];
+}
+
+interface RemoveFavoriteResponse {
+  removeFavorite: {
+    success: boolean;
+    message: string;
+  };
+}
+
 function Favorites() {
   const { user } = useAuth();
-  const { data, loading, error, refetch } = useQuery(GET_FAVORITE_PRODUCTS, {
+  const { data, loading, error, refetch } = useQuery<FavoriteProductsData>(GET_FAVORITE_PRODUCTS, {
     skip: !user
   });
-  const [removeFavorite] = useMutation(REMOVE_FAVORITE);
+  const [removeFavorite] = useMutation<RemoveFavoriteResponse>(REMOVE_FAVORITE);
 
   const handleRemoveFavorite = async (productId: string) => {
     try {
@@ -42,7 +63,7 @@ function Favorites() {
       
       if (result.data?.removeFavorite?.success) {
         alert(result.data.removeFavorite.message);
-        refetch(); // Listeyi yenile
+        refetch(); 
       }
     } catch (error) {
       alert('Hata oluştu');

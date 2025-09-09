@@ -60,26 +60,49 @@ interface ProductsData {
   products: Product[];
 }
 
+interface FavoriteProductsData {
+  favoriteProducts: Product[];
+}
+
+interface AddFavoriteResponse {
+  addFavorite: {
+    success: boolean;
+    message: string;
+  };
+}
+
+interface RemoveFavoriteResponse {
+  removeFavorite: {
+    success: boolean;
+    message: string;
+  };
+}
+
 function ProductList() {
   const { data, loading, error } = useQuery<ProductsData>(GET_PRODUCTS);
   const { user } = useAuth();
-  const [addFavorite] = useMutation(ADD_FAVORITE);
-  const [removeFavorite] = useMutation(REMOVE_FAVORITE);
+  const [addFavorite] = useMutation<AddFavoriteResponse>(ADD_FAVORITE);
+  const [removeFavorite] = useMutation<RemoveFavoriteResponse>(REMOVE_FAVORITE);
 
-  const { data: favoritesData } = useQuery(GET_FAVORITE_PRODUCTS, {
+  const { data: favoritesData } = useQuery<FavoriteProductsData>(GET_FAVORITE_PRODUCTS, {
     skip: !user
   });
 
   const handleFavoriteClick = async (productId: string, isAdd: boolean) => {
     try {
-      const mutation = isAdd ? addFavorite : removeFavorite;
-      const result = await mutation({ 
-        variables: { productId },
-        refetchQueries: [{ query: GET_FAVORITE_PRODUCTS }]
-      });
-      
-      const response = result.data?.[isAdd ? 'addFavorite' : 'removeFavorite'];
-      alert(response?.message || 'İşlem tamamlandı');
+      if (isAdd) {
+        const result = await addFavorite({ 
+          variables: { productId },
+          refetchQueries: [{ query: GET_FAVORITE_PRODUCTS }]
+        });
+        alert(result.data?.addFavorite?.message || 'İşlem tamamlandı');
+      } else {
+        const result = await removeFavorite({ 
+          variables: { productId },
+          refetchQueries: [{ query: GET_FAVORITE_PRODUCTS }]
+        });
+        alert(result.data?.removeFavorite?.message || 'İşlem tamamlandı');
+      }
     } catch (error) {
       alert('Hata oluştu');
     }
@@ -110,7 +133,7 @@ function ProductList() {
         borderRadius: '8px',
         margin: '20px 0'
       }}>
-        <h3 style={{ color: '#d00' }}>❌ Hata Oluştu</h3>
+        <h3 style={{ color: '#d00' }}> Hata Oluştu</h3>
         <p style={{ color: '#800' }}>
           Detay: {error.message}
         </p>
